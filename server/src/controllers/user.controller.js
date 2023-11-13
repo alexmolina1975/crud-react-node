@@ -6,6 +6,13 @@ const controller = {};
 
 const bcrypt = require('bcrypt');
 
+const  createAccessToken = require("../utils/jwt");
+// const { JsonWebTokenError } = require("jsonwebtoken");
+
+const jwt = require ('jsonwebtoken');
+
+const TOKEN_SECRET = 'secret'
+
 /** Crea usuario en MongoDB */
 controller.createUser =  async(req, res) => {
 
@@ -167,4 +174,70 @@ controller.deleteUsuario = async (req, res) => {
     }
 }
 
+/** Login  */
+controller.login = async (req, res) => {
+
+    try{
+        console.log("LOGIN ...");
+
+        const {password, email} = req.body;
+        
+        const userFound = await UserModel.findOne({ email });
+
+        if(!userFound)
+        {
+            return res.status(400).json({message: "Email no existe"});
+
+        }
+
+        const isMatch = await bcrypt.compare(password, userFound.password);
+
+        if( !isMatch )
+        {
+            return res.status(400).json({message: "Contraseña incorrecta"});
+        }
+
+        const token = await createAccessToken({
+            id: userFound._id,
+            username : userFound.username
+        });
+
+        // Devuelve la cookie de sesion
+        res.cookie('token', token);
+        
+        res.json({
+            id: userFound._id,
+            username : userFound.username,
+            email: userFound.email
+        })
+    }catch(err){
+        return res.status(500).json({message: err.message})
+    }
+}
+
+
+controller.verifyToken = async (req, res) => {
+    const  {token} =req.cookies;
+
+    if (!token) return res.send ({error: 'Token no válido'});
+
+    jwt.verify(token, TOKEN_SECRET , async (error, user) => {
+
+        if (error) return res.sendStatus(401).send ({error: 'Token no válido 2'});
+
+        const userFound = await UserModel.findById(user.id);
+        if (!userFound) return res.sendStatus(401).send ({error: 'Token no válido , user not found'});
+
+        return res.json({
+            id: userFound._id,
+            username: userFound.username, 
+            email: userFound.email
+        });
+
+
+    });
+}
+
 module.exports = controller;
+
+

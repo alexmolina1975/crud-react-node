@@ -1,11 +1,17 @@
-import FetchData from './components/fetch-data/FetchData';
+import { BrowserRouter } from 'react-router-dom';
+import AuthProvider from './providers/Auth.provider';
+import Router from './router/Router';
 import { GlobalStyles } from './styles/GlobalStyles';
 
 const App = () => {
 	return (
 		<>
 			<GlobalStyles />
-			<FetchData />
+			<AuthProvider>
+				<BrowserRouter>
+					<Router></Router>
+				</BrowserRouter>
+			</AuthProvider>
 		</>
 	);
 };

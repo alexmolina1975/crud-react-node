@@ -20,4 +20,8 @@ userRouters.put('/api/actualizaUsuarioCorto/:id', controller.updateUsuarioCorto)
 
 userRouters.delete('/api/borraUsuario/:id', controller.deleteUsuario);
 
+userRouters.post('/login', controller.login);
+
+userRouters.get('/verifyToken', controller.verifyToken);
+
 module.exports = userRouters;
